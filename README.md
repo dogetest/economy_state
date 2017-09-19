@@ -1,6 +1,7 @@
 # dogestate
 Dogestate minetest mod
 
-Depends on dogeconomy mod.
+Charges player a fee when digging or placing. 
+Also adds "freedman" privilege, for whom fees wont apply.
 
-Charges player a fee when digging or placing.
+Depends on dogeconomy mod.
