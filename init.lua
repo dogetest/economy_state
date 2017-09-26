@@ -6,20 +6,22 @@ minetest.register_privilege("freedman", {
 })
 
 local fee=function(nick)
-  if not minetest.check_player_privs(nick, "freedman") then
+  if minetest.check_player_privs(nick, "freedman") then
+    return true
+  else
     if economy.withdraw(nick, FEE, "Interaction fee") then
       dogecoin.transfer(nick, SOURCE_DOGEACC, FEE, "Interaction fee")
       return true
+    else
+      return false
     end
-    return false
   end
-  return true
 end
 
 --State wraps node's on_place and on_dig
 local wrap_on_place=function(on_place)
   return function(itemstack, placer, pointed_thing)
-    local fee_and_place=function(itemstack, placer, pointed_thing)
+    local fee_then_place=function(itemstack, placer, pointed_thing)
       local pname=economy.pname(placer)
       if fee(pname) then
         return on_place(itemstack, placer, pointed_thing)
@@ -29,12 +31,12 @@ local wrap_on_place=function(on_place)
     end
     if (minetest.registered_nodes[minetest.get_node(pointed_thing.under).name] or {}).on_rightclick then
       if placer:get_player_control()['sneak'] then
-        return fee_and_place(itemstack, placer, pointed_thing)
+        return fee_then_place(itemstack, placer, pointed_thing)
       else
         return on_place(itemstack, placer, pointed_thing)
       end
     else
-      return fee_and_place(itemstack, placer, pointed_thing)
+      return fee_then_place(itemstack, placer, pointed_thing)
     end
     return itemstack
   end
@@ -70,8 +72,6 @@ for item in ipairs(minetest.registered_items) do
 end
 
 --Wrap minetest.register_node
-old_register_node=minetest.register_node
-
 local wrap_register_node=function(register_node)
   return function(name, definition)
     local old_on_place=definition.on_place or minetest.item_place
@@ -82,4 +82,5 @@ local wrap_register_node=function(register_node)
   end
 end
 
+old_register_node=minetest.register_node
 minetest.register_node=wrap_register_node(old_register_node)
