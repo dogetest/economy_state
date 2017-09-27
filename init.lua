@@ -10,7 +10,6 @@ local fee=function(nick)
     return true
   else
     if economy.withdraw(nick, FEE, "Interaction fee") then
-      dogecoin.transfer(nick, SOURCE_DOGEACC, FEE, "Interaction fee")
       return true
     else
       return false
